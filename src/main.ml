@@ -2,21 +2,26 @@ open Unix;;
 open Sys;;
 open List;;
 
+(* Printer module *)
 module Pr = struct
   let print msg = let bytear = (Bytes.of_string msg) in write stdout bytear 0 (Bytes.length bytear) |> ignore;;
   let print_and_prompt msg = print (msg ^ "\n> ");;
   let print_pre_prompt msg = print_and_prompt ("\n" ^ msg);;
 end
 
+(* Parser module *)
 module Pa = struct
   let regex_match r s = Str.string_match (Str.regexp r) s 0;;
   let split r s = Str.split (Str.regexp r) s;;
 end
 
+(* Ip address module *)
 module Ip = struct
   let get_my_addr () =
     (Unix.gethostbyname(Unix.gethostname())).Unix.h_addr_list.(0);;
 end
+
+(* MODULES AND IMPORTS -------------------------- *)
 
 let mux = Mutex.create ()
 
@@ -44,7 +49,7 @@ type state_type =
 
 let state = ref { exit = false; connections = [] }
 
-(* TYPES AND GLOBAL ------------------ *)
+(* TYPES AND GLOBAL ----------------------------- *)
 
 let sync f =
   Mutex.lock mux;
@@ -68,7 +73,7 @@ let rec getConnection conns con_name = match conns with
   | _                             -> None
 
 let closeConnection conn = Pr.print ("closed connection " ^ conn.name ^ "\n")
-(* UTIL FUNCTIONS -------------------- *)
+(* UTIL FUNCTIONS ------------------------------- *)
 
 let open_command s =
   let port = match Pa.split "open " s with
@@ -149,7 +154,7 @@ let help_command () = Pr.print_and_prompt (
   "  exit\n" ^
   "    gracefully closes all connections and threads and exits program");;
 
-(* COMMAND FUNCTIONS ------------------------ *)
+(* COMMAND FUNCTIONS ---------------------------- *)
 
 let listener () =
   Pr.print_pre_prompt "Thread started";
