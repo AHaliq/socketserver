@@ -1,0 +1,10 @@
+lib: [
+  "_build/install/default/lib/ocs/META"
+  "_build/install/default/lib/ocs/dune-package"
+]
+bin: [
+  "_build/install/default/bin/ocs"
+]
+doc: [
+  "_build/install/default/doc/ocs/README.md"
+]

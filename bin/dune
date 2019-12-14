@@ -1,0 +1,7 @@
+(executable
+  (name ocs)
+  (libraries unix printer))
+
+(install
+  (section bin)
+  (files (ocs.exe as ocs)))
