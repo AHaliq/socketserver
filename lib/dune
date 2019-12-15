@@ -1,3 +1,20 @@
 (library
   (name printer)
+  (modules printer)
   (libraries unix))
+
+(library
+  (name numutils)
+  (modules numutils))
+
+(library
+  (name frameutils)
+  (libraries numutils settings)
+  (modules frameutils))
+
+(library
+  (name settings)
+  (libraries numutils)
+  (modules settings))
+
+  

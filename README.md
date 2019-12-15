@@ -2,6 +2,8 @@
 
 A UNIX TCP socket client/server that manages socket connections and facilitates sending byte arrays through them.
 
+The program is called `ocs` which stands for OCaml sockets.
+
 # Design
 
 The main process on init starts a new thread and then goes blocking awaiting user input. The thread however will call non blocking `recv()` on all sockets until main process sets exit flag to true.
