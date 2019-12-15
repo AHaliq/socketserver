@@ -17,4 +17,13 @@
   (libraries numutils)
   (modules settings))
 
+(library
+  (name commands)
+  (libraries unix printer frameutils settings connections)
+  (modules commands))
+  
+(library
+  (name connections)
+  (libraries unix printer frameutils settings)
+  (modules connections))
   

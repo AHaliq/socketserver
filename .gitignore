@@ -4,3 +4,4 @@
 *.out
 .merlin
 _build
+ocs_unix_sock.*

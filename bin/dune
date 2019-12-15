@@ -1,6 +1,6 @@
 (executable
   (name ocs)
-  (libraries unix printer numutils frameutils))
+  (libraries unix printer commands connections))
 
 (install
   (section bin)
