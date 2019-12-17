@@ -63,16 +63,11 @@ let rec all_commands = [
       (if !core_client_connected
       then
         (send_bytes_to_core (bytes_of_int 0);
-        print (Bytes.to_string (recv_bytes_from_core ())))
+        print "core_process is already running.\n")
       else core_process ());
       close_core_client ()
     );
-    core_func = (fun fd b -> 
-      if match_cmd_payload_type 0 b
-      then let returnmsg = "core_process is already running.\n" in
-      send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
-      else ()
-    )
+    core_func = (fun _ _ -> ())
   };
   {
     name = "ls";
