@@ -1,6 +1,6 @@
 (executable
   (name ocs)
-  (libraries unix printer commands connections))
+  (libraries unix printer commands))
 
 (install
   (section bin)

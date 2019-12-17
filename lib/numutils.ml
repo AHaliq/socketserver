@@ -26,6 +26,13 @@ let bytes_of_int i =
   done);
   !res)
 
+let int_of_bytes b =
+  let x = ref 0 in
+  (for i = 0 to Bytes.length b - 1 do
+    x := (!x lsl 8) + (Char.code (Bytes.get b i))
+  done);
+  !x
+
 let pad_min_len n b =
   let len = Bytes.length b in
   if len >= n then b

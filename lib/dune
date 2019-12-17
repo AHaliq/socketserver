@@ -19,11 +19,11 @@
 
 (library
   (name commands)
-  (libraries unix printer frameutils settings connections)
+  (libraries unix printer frameutils settings numutils connections)
   (modules commands))
   
 (library
   (name connections)
-  (libraries unix printer frameutils settings)
+  (libraries unix printer frameutils settings numutils)
   (modules connections))
   
