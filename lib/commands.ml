@@ -40,7 +40,7 @@ let rec all_commands = [
         | [] -> ()
         | _ -> 
           let (cfd, _) = accept fd in
-          let payload = recv_frames_as_bytes cfd in
+          let payload = recv_frames_as_bytes_from_fd cfd in
           List.fold_left (fun () x -> x.core_func cfd payload) () all_commands |> ignore;
           close cfd
         )) in
@@ -68,7 +68,7 @@ let rec all_commands = [
       close_core_client ()
     );
     core_func = (fun _ _ -> ())
-  };
+  }; (* -------------------------------------- *)
   {
     name = "ls";
     arghelp = "";
@@ -85,7 +85,7 @@ let rec all_commands = [
       send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
-  };
+  }; (* -------------------------------------- *)
   {
     name = "open";
     arghelp = "<port>";
@@ -115,7 +115,7 @@ let rec all_commands = [
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
-  };
+  }; (* -------------------------------------- *)
   {
     name = "connect";
     arghelp = "<ip>:<port>";
@@ -150,7 +150,7 @@ let rec all_commands = [
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
-  };
+  }; (* -------------------------------------- *)
   {
     name = "sendstring";
     arghelp = "<connection_id> <string>";
@@ -184,7 +184,7 @@ let rec all_commands = [
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
-  };
+  }; (* -------------------------------------- *)
   {
     name = "close";
     arghelp = "<connection_id>";
@@ -213,7 +213,7 @@ let rec all_commands = [
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
-  };
+  }; (* -------------------------------------- *)
   {
     name = "exit";
     arghelp = "";
@@ -228,10 +228,9 @@ let rec all_commands = [
       then coreexit := true
       else ()
     )
-  }]
+  }] (* -------------------------------------- *)
 
 let help_per_command x =
-  let indent = "        " in
   indent ^ "ocs " ^ x.name ^ " " ^ x.arghelp ^ "\n" ^
   indent ^ indent ^ "- " ^ x.description ^ "\n\n"
 
