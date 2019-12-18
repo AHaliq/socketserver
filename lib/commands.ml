@@ -128,7 +128,7 @@ let rec all_commands = [
   {
     name = "open";
     arghelp = "<ip>:<port>";
-    description = "starts a socket server at specified ip and port";
+    description = "starts a socket server at specified address";
     cmd_func = (fun () ->
       if Array.length Sys.argv - 1 != 2 then
         print wrong_args_text
