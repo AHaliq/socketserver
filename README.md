@@ -18,7 +18,7 @@ First run the core process that manages tcp sockets
 ocs core
 ```
 
-optionally you can run it in the foreground if you only have access to one shell
+optionally you can run it in the background if you only have access to one shell
 ```
 ocs core &
 ```
