@@ -44,7 +44,37 @@ let rec all_commands = [
           List.fold_left (fun () x -> x.core_func cfd payload) () all_commands |> ignore;
           close cfd
         )) in
-    let service_connections () = () in
+    
+    let service_connections () = List.map (fun c -> 
+      let (rs, _, _) = select [c.fd] [] [] poll_time in
+      match rs with
+      | [] -> ()
+      | _ ->
+        if c.is_server 
+        then
+          let (cfd, _) = accept c.fd in
+          add_new_peer cfd;
+          let newCon = tcpconnection_of_fd cfd in
+          print ("new client connected :\n" ^
+          indent ^ (string_of_tcpconnection newCon) ^ "\nto:\n" ^
+          indent ^ (string_of_tcpconnection c) ^ "\n")
+          (* new connect to server *)
+        else
+          let payload = recv_frames_as_bytes_from_fd c.fd in
+          let msg_type = int_of_bytes (Bytes.sub payload 0 1) in
+          let msg_bytes = Bytes.sub payload 1 (Bytes.length payload - 1) in
+          (match msg_type with
+          | 0 -> print "TODO! print ACK timing\n"
+          | 1 ->
+            send_bytes_as_frames_to_fd c.fd (bytes_of_int 0);
+            print ("new message from :\n" ^
+            indent ^ (string_of_tcpconnection c) ^ "\nmessage :" ^
+            (Bytes.to_string msg_bytes) ^ "\n")
+          | _ -> print "UNKNOWN MSG FORMAT RECIEVED"
+          )
+          (* new send to client *)
+    ) !all_conns |> ignore in
+    
     let core_process () = 
       (try
         setup_core_server ();
@@ -81,7 +111,7 @@ let rec all_commands = [
     );
     core_func = (fun fd b ->
       if match_cmd_payload_type 1 b
-      then let returnmsg = "TODO! print connections\n" in
+      then let returnmsg = List.fold_left (fun a c -> a ^ indent ^ (string_of_tcpconnection c) ^ "\n") "connections:\n" !all_conns in
       send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
@@ -111,7 +141,8 @@ let rec all_commands = [
       if match_cmd_payload_type 2 b
       then
         let port = int_of_bytes (Bytes.sub b 1 2) in
-        let returnmsg = "TODO! make port " ^ (string_of_int port) ^ ".\n" in
+        let returnmsg = (try create_server (get_local_ip ()) port; "success.\n"
+        with e -> "failed with:\n" ^ (Printexc.to_string e) ^ "\n") in
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
@@ -145,8 +176,11 @@ let rec all_commands = [
       if match_cmd_payload_type 3 b
       then
         let ipport_str = Bytes.to_string (Bytes.sub b 1 (Bytes.length b - 1)) in
-        let returnmsg = "TODO! create connection.\n" in
-        print ipport_str;
+        let returnmsg = (match String.split_on_char ':' ipport_str with
+        | ip_str::port_str::_ ->
+          (try connect_to_server (inet_addr_of_string ip_str) (int_of_string port_str); "success"
+          with e -> "failed connecting with:\n" ^ Printexc.to_string e)
+        | _ -> "invalid format") ^ "\n" in
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
@@ -178,9 +212,18 @@ let rec all_commands = [
       if match_cmd_payload_type 4 b
       then 
         let id = int_of_bytes (Bytes.sub b 1 2) in
-        let str = Bytes.to_string (Bytes.sub b 3 (Bytes.length b - 3)) in
-        let returnmsg = "TODO! send string.\n" in
-        print ((string_of_int id) ^ ":" ^ str ^ "\n");
+        let str_byte = Bytes.sub b 3 (Bytes.length b - 3) in
+        let returnmsg =
+          (try
+            let c = tcpconnection_of_id id in
+            if c.is_server then
+              "you can't send to your own server, send to client connections"
+            else
+              let type_byte = bytes_of_int 1 in
+              send_bytes_as_frames_to_fd c.fd (Bytes.cat type_byte str_byte);
+              (* mark Sys.time () for ACK timing *)
+              "success"
+          with _ -> "id is not valid") ^ "\n" in
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
@@ -208,8 +251,7 @@ let rec all_commands = [
       if match_cmd_payload_type 5 b
       then
         let id = int_of_bytes (Bytes.sub b 1 2) in
-        let returnmsg = "TODO! close.\n" in
-        print ((string_of_int id) ^ "\n");
+        let returnmsg = (try kill_conn id; "success" with e -> "failed with\n" ^ Printexc.to_string e) ^ "\n" in
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
@@ -225,7 +267,7 @@ let rec all_commands = [
     );
     core_func = (fun _ b -> 
       if match_cmd_payload_type 6 b
-      then coreexit := true
+      then (kill_all_conn (); coreexit := true)
       else ()
     )
   }] (* -------------------------------------- *)

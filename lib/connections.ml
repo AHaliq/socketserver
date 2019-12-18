@@ -68,7 +68,17 @@ let string_of_tcpconnection x =
   "id: " ^ (string_of_int x.id) ^ ", " ^
   "type: " ^ (if x.is_server then "server" else "client") ^ ", " ^
   "sockaddr: " ^ (string_of_inet_addr x.ip) ^ ":" ^ (string_of_int x.port)
-  
+
+let tcpconnection_of_fd fd =
+  match List.filter_map (fun c -> if c.fd == fd then Some c else None) !all_conns with
+  | c::_  -> c
+  | _     -> raise (Failure "Id does not exist")
+
+let tcpconnection_of_id id =
+  match List.filter_map (fun c -> if c.id == id then Some c else None) !all_conns with
+  | c::_  -> c
+  | _     -> raise (Failure "Id does not exist")
+
 let adv_counter () = id_counter := (
   match !id_counter with
   | 65536 -> 0
@@ -76,18 +86,20 @@ let adv_counter () = id_counter := (
 
 let create_server ip_arg port_arg =
   let sfd = socket PF_INET SOCK_STREAM 0 in
-  bind sfd (ADDR_INET (ip_arg, port_arg));
-  listen sfd 1;
-  let newCon = {
-    id = !id_counter;
-    is_server = true;
-    ip = ip_arg;
-    port = port_arg;
-    fd = sfd;
-    sent_time = 0.0
-  } in
-  adv_counter ();
-  all_conns := List.cons newCon !all_conns
+  (try
+    bind sfd (ADDR_INET (ip_arg, port_arg));
+    listen sfd 1;
+    let newCon = {
+      id = !id_counter;
+      is_server = true;
+      ip = ip_arg;
+      port = port_arg;
+      fd = sfd;
+      sent_time = 0.0
+    } in
+    adv_counter ();
+    all_conns := List.cons newCon !all_conns
+  with e -> close sfd; raise e)
 
 let connect_to_server ip_arg port_arg =
   let cfd = socket PF_INET SOCK_STREAM 0 in
@@ -105,6 +117,23 @@ let connect_to_server ip_arg port_arg =
     adv_counter ();
     all_conns := List.cons newCon !all_conns
   with e -> close cfd; raise e)
+
+let add_new_peer cfd =
+  let (ip_arg, port_arg) = (
+    match getpeername cfd with
+    | ADDR_INET (x,y) -> (x,y)
+    | ADDR_UNIX _ -> raise (Failure "must be tcp socket")
+  ) in
+  let newCon = {
+    id = !id_counter;
+    is_server = false;
+    ip = ip_arg;
+    port = port_arg;
+    fd = cfd;
+    sent_time = 0.0
+  } in
+  adv_counter ();
+  all_conns := List.cons newCon !all_conns
 
 let kill_conn id =
   match (List.filter_map (fun x -> if x.id == id then Some x else None) !all_conns) with
