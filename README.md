@@ -12,7 +12,8 @@ make sure you have `dune` installed via `opam` and run the following to compile 
 dune build @install
 ```
 
-# Example use
+# User Guide
+
 First run the core process that manages tcp sockets
 ```
 ocs core
