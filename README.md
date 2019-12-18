@@ -4,7 +4,7 @@ A UNIX TCP socket client/server that manages socket connections and facilitates 
 
 The program is called `ocs` which stands for OCaml sockets.
 
-# Running the project
+# Building the project
 
 make sure you have `dune` installed via `opam` and run the following to compile the project:
 
