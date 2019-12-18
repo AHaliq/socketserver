@@ -15,12 +15,8 @@ type tcpconnection =
   }
 
 let id_counter = ref 0
-let all_conns : tcpconnection list ref  = ref []
 
-let string_of_tcpconnection x =
-  "id: " ^ (string_of_int x.id) ^ ", " ^
-  "type: " ^ (if x.is_server then "server" else "client") ^ ", " ^
-  "sockaddr: " ^ (string_of_inet_addr x.ip) ^ ":" ^ (string_of_int x.port)
+let all_conns : tcpconnection list ref  = ref []
 
 (* TCP CONNECTIONS --------------------------- *)
 
@@ -68,6 +64,11 @@ let get_local_ip () =
 
 (* GENERAL FUNCTIONS ------------------------- *)
 
+let string_of_tcpconnection x =
+  "id: " ^ (string_of_int x.id) ^ ", " ^
+  "type: " ^ (if x.is_server then "server" else "client") ^ ", " ^
+  "sockaddr: " ^ (string_of_inet_addr x.ip) ^ ":" ^ (string_of_int x.port)
+  
 let adv_counter () = id_counter := (
   match !id_counter with
   | 65536 -> 0
