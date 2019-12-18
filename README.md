@@ -70,6 +70,10 @@ The main loop for core is as follows:
 3. Otherwise check tcp connections for any messages
 4. Repeat step 1
 
+Messages sent are divided into frames of 65536 bytes. A frame consists of a byte indicating
+the next frame is a continuation. The next two bytes the length of the payload (thus 65536).
+And lastly the data payload itself.
+
 The framing protocol used in both Unix domain sockets and tcp sockets are the same and
 they both collate all data into a single `Bytes` object. Thus data communication is
 limited to max `Bytes` length.
