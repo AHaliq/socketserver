@@ -37,3 +37,8 @@ Send a string
 ```
 ocs sendstring 1 hello
 ```
+
+Cleanup after you are done (kill core and close file descriptors)
+```
+ocs exit
+```
