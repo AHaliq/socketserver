@@ -47,3 +47,24 @@ Cleanup after you are done (kill core and close file descriptors)
 ```
 ocs exit
 ```
+
+# Developer Guide
+
+Each command execution is a process. Running `ocs core` runs the main loop that listens
+to commands via a unix domain socket and tcp sockets it is currently connected to.
+
+User input validation is done prior to sending data to core. If validation requires
+knowledge of tcp connections it will be done in core.
+
+Each command is stored in `commands.ml` in `all_commands` list. Besides strings for
+help text, it also has:
+
+* `cmd_func` which is a function invoked on the command process
+* `core_func` which is a function core runs with bytes recieved via unix domain socket
+
+The main loop for core is as follows:
+
+1. The core first checks its unix domain socket for any messages and invokes `core_func`
+2. If exit flag is true, cleanup and exit
+3. Otherwise check tcp connections for any messages
+4. Repeat step 1
