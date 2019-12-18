@@ -69,3 +69,15 @@ The main loop for core is as follows:
 2. If exit flag is true, cleanup and exit
 3. Otherwise check tcp connections for any messages
 4. Repeat step 1
+
+The framing protocol used in both Unix domain sockets and tcp sockets are the same and
+they both collate all data into a single `Bytes` object. Thus data communication is
+limited to max `Bytes` length.
+
+In the layer beneath the framing protocol, for Unix domain sockets is another protocol
+first specifying command type via an integer in the first byte, and depending on the byte
+a different protocol for the remaining of the data.
+
+For tcp sockets the first byte specifies the type of message. Type 0 are `ACK` messages.
+Type 1 are `string` messages. Thus it is extensible to interpret other types of data in 
+the future.
