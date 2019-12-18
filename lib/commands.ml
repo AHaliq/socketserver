@@ -127,31 +127,38 @@ let rec all_commands = [
   }; (* -------------------------------------- *)
   {
     name = "open";
-    arghelp = "<port>";
-    description = "starts a socket server at specified port";
+    arghelp = "<ip>:<port>";
+    description = "starts a socket server at specified ip and port";
     cmd_func = (fun () ->
       if Array.length Sys.argv - 1 != 2 then
         print wrong_args_text
       else
-        try
-          let port = int_of_string Sys.argv.(2) in
+        match String.split_on_char ':' Sys.argv.(2) with
+        | ip_str::port_str::[]  ->
+          let port = int_of_string port_str in
           if port >= 0 && port <= 65536
-          then
-            let type_bytes = (bytes_of_int 2) in
-            let port_bytes = pad_min_len 2 (bytes_of_int port) in
-            connect_core_client ();
-            send_bytes_to_core (Bytes.cat type_bytes port_bytes);
-            print (Bytes.to_string (recv_bytes_from_core ()));
-            close_core_client ()
+          then (
+            try
+              inet_addr_of_string ip_str |> ignore;
+              let type_bytes = (bytes_of_int 2) in
+              let ipaddr_bytes = Bytes.of_string Sys.argv.(2) in
+              connect_core_client ();
+              send_bytes_to_core (Bytes.cat type_bytes ipaddr_bytes);
+              print (Bytes.to_string (recv_bytes_from_core ()));
+              close_core_client ()
+            with _ -> print "not a valid ip address.\n")
           else print "port must be between 0 and 65536.\n"
-        with _ -> print "port must be a number.\n"
+        | _             -> print "argument must be <ip:port>.\n"
     );
     core_func = (fun fd b -> 
       if match_cmd_payload_type 2 b
       then
-        let port = int_of_bytes (Bytes.sub b 1 2) in
-        let returnmsg = (try create_server (get_local_ip ()) port; "success.\n"
-        with e -> "failed with:\n" ^ (Printexc.to_string e) ^ "\n") in
+        let ipport_str = Bytes.to_string (Bytes.sub b 1 (Bytes.length b - 1)) in
+        let returnmsg = (match String.split_on_char ':' ipport_str with
+        | ip_str::port_str::_ ->
+          (try (create_server (inet_addr_of_string ip_str) (int_of_string port_str); "success.")
+          with e -> "failed with:\n" ^ (Printexc.to_string e) ^ "\n")
+        | _ -> "invalid format") ^ "\n" in
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )
@@ -187,7 +194,7 @@ let rec all_commands = [
         let ipport_str = Bytes.to_string (Bytes.sub b 1 (Bytes.length b - 1)) in
         let returnmsg = (match String.split_on_char ':' ipport_str with
         | ip_str::port_str::_ ->
-          (try connect_to_server (inet_addr_of_string ip_str) (int_of_string port_str); "success"
+          (try connect_to_server (inet_addr_of_string ip_str) (int_of_string port_str); "success."
           with e -> "failed connecting with:\n" ^ Printexc.to_string e)
         | _ -> "invalid format") ^ "\n" in
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
@@ -231,7 +238,7 @@ let rec all_commands = [
               let type_byte = bytes_of_int 1 in
               send_bytes_as_frames_to_fd c.fd (Bytes.cat type_byte str_byte);
               Queue.add (Sys.time ()) c.sent_time;
-              "success"
+              "success."
           with _ -> "id is not valid") ^ "\n" in
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
@@ -260,7 +267,7 @@ let rec all_commands = [
       if match_cmd_payload_type 5 b
       then
         let id = int_of_bytes (Bytes.sub b 1 2) in
-        let returnmsg = (try kill_conn id; "success" with e -> "failed with\n" ^ Printexc.to_string e) ^ "\n" in
+        let returnmsg = (try kill_conn id; "success." with e -> "failed with\n" ^ Printexc.to_string e) ^ "\n" in
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)
       else ()
     )

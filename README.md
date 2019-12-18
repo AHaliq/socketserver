@@ -26,7 +26,7 @@ ocs core &
 
 Then open a server
 ```
-ocs open 8888
+ocs open 192.168.1.232:8888
 ```
 
 Check that the connection was created
