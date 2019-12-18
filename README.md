@@ -28,7 +28,7 @@ Check that the connection was created
 ocs ls
 ```
 
-Then on another machine connect to it
+Then on another machine after running `ocs core` connect to the server
 ```
 ocs connect 192.168.1.232:8888
 ```
