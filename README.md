@@ -40,7 +40,7 @@ ocs connect 192.168.1.232:8888
 
 Send a string
 ```
-ocs sendstring 1 hello
+ocs sendstring 0 hello
 ```
 
 Cleanup after you are done (kill core and close file descriptors)
