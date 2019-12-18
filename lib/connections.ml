@@ -40,14 +40,18 @@ let recv_frames_as_bytes_from_fd fd =
   (while !moreframes do
     let bytes_cont = Bytes.create 1 in
     recv fd bytes_cont 0 1 [] |> ignore;
-    let cont = Bytes.get bytes_cont 0 == Char.chr 1 in
-    let bytes_len = Bytes.create frame_len_bytes in
-    recv fd bytes_len 0 frame_len_bytes [] |> ignore;
-    let len = int_of_bytes bytes_len in
-    let payload = Bytes.create len in
-    recv fd payload 0 len [] |> ignore;
-    payloads := List.cons payload !payloads;
-    moreframes := cont
+    let chr_cont = Bytes.get bytes_cont 0 in
+    let eof = chr_cont == Char.chr 0 in
+    if eof then raise (Failure "eof")
+    else
+      let cont = chr_cont == Char.chr 2 in
+      let bytes_len = Bytes.create frame_len_bytes in
+      recv fd bytes_len 0 frame_len_bytes [] |> ignore;
+      let len = int_of_bytes bytes_len in
+      let payload = Bytes.create len in
+      recv fd payload 0 len [] |> ignore;
+      payloads := List.cons payload !payloads;
+      moreframes := cont
   done);
   payloads := List.rev !payloads;
   Bytes.concat (Bytes.create 0) !payloads
