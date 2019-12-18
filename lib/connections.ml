@@ -97,8 +97,12 @@ let create_server ip_arg port_arg =
     let newCon = {
       id = !id_counter;
       is_server = true;
-      ip = ip_arg;
-      port = port_arg;
+      ip = (match getsockname sfd with
+      | ADDR_INET (ip,_) -> ip
+      | ADDR_UNIX _ -> raise (Failure "expecting tcp address"));
+      port = (match getsockname sfd with
+      | ADDR_INET (_,p) -> p
+      | ADDR_UNIX _ -> raise (Failure "expecting tcp address"));
       fd = sfd;
       sent_time = Queue.create ()
     } in
@@ -114,8 +118,12 @@ let connect_to_server ip_arg port_arg =
     let newCon = {
       id = !id_counter;
       is_server = false;
-      ip = ip_arg;
-      port = port_arg;
+      ip = (match getpeername cfd with
+      | ADDR_INET (ip,_) -> ip
+      | ADDR_UNIX _ -> raise (Failure "expecting tcp address"));
+      port = (match getpeername cfd with
+      | ADDR_INET (_,p) -> p
+      | ADDR_UNIX _ -> raise (Failure "expecting tcp address"));
       fd = cfd;
       sent_time = Queue.create ()
     } in
