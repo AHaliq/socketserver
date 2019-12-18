@@ -5,3 +5,4 @@
 .merlin
 _build
 ocs_unix_sock.*
+ocs.install

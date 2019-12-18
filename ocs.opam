@@ -1,0 +1,7 @@
+opam-version: "2.0"
+version: "1.0"
+authors: ["AHaliq"]
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+]

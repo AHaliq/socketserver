@@ -1,6 +1,7 @@
 lib: [
   "_build/install/default/lib/ocs/META"
   "_build/install/default/lib/ocs/dune-package"
+  "_build/install/default/lib/ocs/opam"
 ]
 bin: [
   "_build/install/default/bin/ocs"

@@ -6,10 +6,10 @@ The program is called `ocs` which stands for OCaml sockets.
 
 # Running the project
 
-make sure you have `dune` installed via `opam`.
+make sure you have `dune` installed via `opam` and run the following to compile the project:
 
 ```
-dune exec ocs
+dune build @install
 ```
 
 # Example use
