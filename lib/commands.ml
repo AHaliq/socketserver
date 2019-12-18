@@ -63,12 +63,16 @@ let rec all_commands = [
           let payload = recv_frames_as_bytes_from_fd c.fd in
           let msg_type = int_of_bytes (Bytes.sub payload 0 1) in
           let msg_bytes = Bytes.sub payload 1 (Bytes.length payload - 1) in
+          let from_msg = "from :\n" ^ indent ^ (string_of_tcpconnection c) ^ "\n" in
           (match msg_type with
-          | 0 -> print "TODO! print ACK timing\n"
+          | 0 -> 
+            (try
+            let t = Sys.time () -. Queue.take c.sent_time in
+            print ("ACK (" ^ (string_of_float t) ^ "s)" ^ from_msg)
+            with _ -> print ("UNEXPECTED ACK from :\n" ^ from_msg))
           | 1 ->
             send_bytes_as_frames_to_fd c.fd (bytes_of_int 0);
-            print ("new message from :\n" ^
-            indent ^ (string_of_tcpconnection c) ^ "\nmessage :" ^
+            print ("new message " ^ from_msg ^ "message :" ^
             (Bytes.to_string msg_bytes) ^ "\n")
           | _ -> print "UNKNOWN MSG FORMAT RECIEVED"
           )
@@ -221,7 +225,7 @@ let rec all_commands = [
             else
               let type_byte = bytes_of_int 1 in
               send_bytes_as_frames_to_fd c.fd (Bytes.cat type_byte str_byte);
-              (* mark Sys.time () for ACK timing *)
+              Queue.add (Sys.time ()) c.sent_time;
               "success"
           with _ -> "id is not valid") ^ "\n" in
         send_bytes_as_frames_to_fd fd (Bytes.of_string returnmsg)

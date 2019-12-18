@@ -11,7 +11,7 @@ type tcpconnection =
     ip        : inet_addr;
     port      : int;
     fd        : file_descr;
-    sent_time : float
+    sent_time : float Queue.t
   }
 
 let id_counter = ref 0
@@ -84,6 +84,7 @@ let adv_counter () = id_counter := (
   | 65536 -> 0
   | _     -> !id_counter + 1)
 
+
 let create_server ip_arg port_arg =
   let sfd = socket PF_INET SOCK_STREAM 0 in
   (try
@@ -95,7 +96,7 @@ let create_server ip_arg port_arg =
       ip = ip_arg;
       port = port_arg;
       fd = sfd;
-      sent_time = 0.0
+      sent_time = Queue.create ()
     } in
     adv_counter ();
     all_conns := List.cons newCon !all_conns
@@ -112,7 +113,7 @@ let connect_to_server ip_arg port_arg =
       ip = ip_arg;
       port = port_arg;
       fd = cfd;
-      sent_time = 0.0
+      sent_time = Queue.create ()
     } in
     adv_counter ();
     all_conns := List.cons newCon !all_conns
@@ -130,7 +131,7 @@ let add_new_peer cfd =
     ip = ip_arg;
     port = port_arg;
     fd = cfd;
-    sent_time = 0.0
+    sent_time = Queue.create ()
   } in
   adv_counter ();
   all_conns := List.cons newCon !all_conns
