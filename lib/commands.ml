@@ -235,7 +235,7 @@ let rec all_commands = [
   {
     name = "close";
     arghelp = "<connection_id>";
-    description = "closes a socket connection or soket server of the id";
+    description = "closes a socket connection or socket server of the id";
     cmd_func = (fun () ->
       if Array.length Sys.argv - 1 != 2 then
         print wrong_args_text
